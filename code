@@ -1,0 +1,102 @@
+#!/bin/bash
+
+# Section A
+
+# 1. Manual Page
+man() {
+  echo "internsctl(1) - Custom Linux Command"
+  echo
+  echo "NAME"
+  echo "       internsctl - Perform various system operations"
+  echo
+  echo "SYNOPSIS"
+  echo "       internsctl [OPTION]... [COMMAND] [ARGUMENTS]..."
+  echo
+  echo "DESCRIPTION"
+  echo "       internsctl is a custom Linux command for performing various system operations."
+  echo
+  echo "OPTIONS"
+  echo "       --help          Show help message"
+  echo "       --version       Show command version"
+  echo
+  echo "COMMANDS"
+  echo "       cpu             Get CPU information"
+  echo "       memory          Get memory information"
+  echo "       user            Manage users on the system"
+  echo "       file            Get information about a file"
+}
+
+# 2. --help Option
+help() {
+  echo "Usage: internsctl [OPTION]... [COMMAND] [ARGUMENTS]..."
+  echo "Perform various system operations."
+  echo
+  echo "Options:"
+  echo "  --help            Show this help message"
+  echo "  --version         Show command version"
+  echo
+  echo "Commands:"
+  echo "  cpu getinfo       Get CPU information"
+  echo "  memory getinfo    Get memory information"
+  echo "  user create       Create a new user"
+  echo "  user list         List all regular users"
+  echo "  user list --sudo-only  List users with sudo permissions"
+  echo "  file getinfo      Get information about a file"
+  echo
+  echo "Use 'internsctl COMMAND --help' for more information about a command."
+}
+
+# 3. --version Option
+version() {
+  echo "internsctl v0.1.0"
+}
+
+# Section B
+
+# Part1 | Level Easy
+if [[ "$1" == "cpu" && "$2" == "getinfo" ]]; then
+  lscpu
+elif [[ "$1" == "memory" && "$2" == "getinfo" ]]; then
+  free
+fi
+
+# Part2 | Level Intermediate
+if [[ "$1" == "user" ]]; then
+  if [[ "$2" == "create" && "$3" ]]; then
+    useradd "$3"
+    passwd "$3"
+  elif [[ "$2" == "list" ]]; then
+    if [[ "$3" == "--sudo-only" ]]; then
+      grep -Po '^sudo.+:\K.*$' /etc/group | tr ',' '\n'
+    else
+      getent passwd | cut -d: -f1
+    fi
+  fi
+fi
+
+# Part3 | Advanced Level
+if [[ "$1" == "file" && "$2" == "getinfo" && "$3" ]]; then
+  file="$3"
+  if [[ "$4" == "--size" || "$4" == "-s" ]]; then
+    stat --printf="%s\n" "$file"
+  elif [[ "$4" == "--permissions" || "$4" == "-p" ]]; then
+    stat --printf="%A\n" "$file"
+  elif [[ "$4" == "--owner" || "$4" == "-o" ]]; then
+    stat --printf="%U\n" "$file"
+  elif [[ "$4" == "--last-modified" || "$4" == "-m" ]]; then
+    stat --printf="%y\n" "$file"
+  else
+    stat --printf="File: %n\nAccess: %A\nSize(B): %s\nOwner: %U\nModify: %y\n" "$file"
+  fi
+fi
+
+# Handle --help and --version options
+case "$1" in
+  --help)
+    help
+    ;;
+  --version)
+    version
+    ;;
+esac
+chmod +x internsctl
